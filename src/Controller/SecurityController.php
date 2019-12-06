@@ -7,11 +7,14 @@ use App\Security\Authenticator;
 use App\Form\RegistrationFormType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class SecurityController extends AbstractController
 {
@@ -43,7 +46,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/register", name="app_register")
      */
-    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, Authenticator $authenticator): Response
+    public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, GuardAuthenticatorHandler $guardHandler, Authenticator $authenticator)
     {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -75,5 +78,36 @@ class SecurityController extends AbstractController
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form->createView(),
         ]);
+    }
+
+    /**
+     * registerApi
+     */
+    public function registerApi(Request $request, UserPasswordEncoderInterface $encoder, SerializerInterface $serializer, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (0 === strpos($request->headers->get('Content-Type'), 'application/json')) {
+            $data = json_decode($request->getContent(), true);
+            $request->request->replace(is_array($data) ? $data : array());
+        }
+        // $username = $request->request->get('username');
+        $email = $request->request->get('email');
+        $password = $request->request->get('password');
+        $roles = $request->request->get('roles');
+
+        if (!$roles) {
+            $roles = ["ROLE_USER"];
+        }
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword($encoder->encodePassword($user, $password));
+        $user->setRoles(($roles));
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($user);
+        $em->flush();
+
+        // return new Response(sprintf('User %s successfully created', $user->getUsername()));
+        $token = $jwtManager->create($user);
+        return JsonResponse::fromJsonString($serializer->serialize(['token' => $token], 'json'));
     }
 }
