@@ -92,7 +92,7 @@ class ProductList extends React.Component
     render() {
         return (
             <div id="content-wrap">
-                <div className="product-wrapper">
+                {/* <div className="product-wrapper">
                     <section className="p-t-30" id="react-product-list">
                         <div className="container">
                             <div className="row">
@@ -100,8 +100,15 @@ class ProductList extends React.Component
                             </div>
                         </div>
                     </section>
-                </div>
-            </div>
+                </div> */}
+                <h1>Hello React ! ✅</h1>
+
+                This friendly message is coming from:
+                <ul>
+                    <li>Le bonheur se trouve dans le dossier <code><a href="{{ '/home/yen/Dropbox (NIGAO)/CoDaC/Repo/Webcup2019/perfect-timing/src/Controller/IndexController.php'|file_link(0) }}">assets/js</a></code></li>
+                    <li>Le template <code><a href="{{ '/home/yen/Dropbox (NIGAO)/CoDaC/Repo/Webcup2019/perfect-timing/templates/index/index.html.twig'|file_link(0) }}">templates/base.html.twig</a></code></li>
+                </ul>
+                            </div>
         );
     }
 }
